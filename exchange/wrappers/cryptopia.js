@@ -61,7 +61,7 @@ Trader.prototype.getTrades = function(since, callback, descending) {
         else
             callback(undefined, pushedData);
 
-    }, this.tradePair, 24);
+    }, this.tradePair, 48);
 };
 Trader.prototype.getPortfolio = function(callback) {
     this.cryptopiaClient.getBalance(function(err, data) {
