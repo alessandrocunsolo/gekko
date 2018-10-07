@@ -53,9 +53,8 @@ Trader.prototype.getTrades = function(since, callback, descending) {
             });
         }
         pushedData = pushedData.sort(function(a, b) {
-            return a.Timestamp - b.Timestamp;
+            return a.date - b.date;
         });
-
 
         if (descending)
             callback(undefined, pushedData.reverse());
@@ -186,9 +185,11 @@ Trader.getCapabilities = function() {
         assets: assets,
         maxTradesAge: 60,
         maxHistoryFetch: null,
+        providesHistory: 'date',
+        providesFullHistory: true,
         markets: markets,
         requires: ['key', 'secret', 'username'],
-        fetchTimespan: 60,
+        fetchTimespan: null,
         tid: 'tid',
         gekkoBroker: '0.6.2',
         limitedCancelConfirmation: false
