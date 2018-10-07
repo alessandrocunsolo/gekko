@@ -29,7 +29,6 @@ const Trader = function(config) {
 
 Trader.prototype.getTrades = function(since, callback, descending) {
     var self = this;
-    console.log("DESC = " + descending);
 
     function generateTid(data) {
         var amountStr = data.Amount.toString().replace('.', '');
@@ -57,7 +56,6 @@ Trader.prototype.getTrades = function(since, callback, descending) {
             return a.Timestamp - b.Timestamp;
         });
 
-        console.log(pushedData);
 
         if (descending)
             callback(undefined, pushedData.reverse());
