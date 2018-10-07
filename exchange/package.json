@@ -26,7 +26,7 @@
     "bitx": "^1.5.0",
     "bluebird": "^3.5.1",
     "coinfalcon": "^1.0.3",
-    "cryptopia": "file:../../cryptopia",
+    "cryptopia": "git+https://github.com/alessandrocunsolo/cryptopia.git",
     "gdax": "^0.7.0",
     "gekko-bittrex": "^0.8.5",
     "gekko-broker-poloniex": "^0.0.12",

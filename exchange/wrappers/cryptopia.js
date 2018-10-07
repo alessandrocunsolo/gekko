@@ -26,11 +26,20 @@ const Trader = function(config) {
     this.cryptopiaClient = new Cryptopia(this.key, this.secret);
     this.tid = 0;
 };
-//TODO: Implement
+
 Trader.prototype.getTrades = function(since, callback, descending) {
     var self = this;
+    console.log("DESC = " + descending);
+
+    function generateTid(data) {
+        var amountStr = data.Amount.toString().replace('.', '');
+        var totalStr = data.Total.toString().replace('.', '');
+        var key = data.TradePairId + data.Type == "Buy" ? "1" : "0" + data.Timestamp + amountStr + totalStr;
+        return key;
+    };
+
+
     this.cryptopiaClient.getTrades(function(err, data) {
-        console.log(data);
         if (err)
             return callback(err);
         if (data.Error != null)
@@ -38,7 +47,7 @@ Trader.prototype.getTrades = function(since, callback, descending) {
         var pushedData = [];
         for (var i = 0; i < data.Data.length; i++) {
             pushedData.push({
-                tid: self.tid++,
+                tid: generateTid(data.Data[i]),
                 date: data.Data[i].Timestamp,
                 price: data.Data[i].Price,
                 amount: data.Data[i].Amount
@@ -49,10 +58,11 @@ Trader.prototype.getTrades = function(since, callback, descending) {
         });
 
         console.log(pushedData);
+
         if (descending)
             callback(undefined, pushedData.reverse());
         else
-            callback(undefined, pushedData.reverse());
+            callback(undefined, pushedData);
 
     }, this.tradePair, 24);
 };
