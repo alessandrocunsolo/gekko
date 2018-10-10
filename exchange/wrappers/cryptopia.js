@@ -114,6 +114,7 @@ Trader.prototype.getTicker = function(callback) {
 
     }, this.tradePair);
 };
+
 Trader.prototype.getPrecision = function(tickSize) {
 
 };
