@@ -1,10 +1,11 @@
+import { calendarFormat } from 'moment';
+
 const moment = require('moment');
 const _ = require('lodash');
 const Cryptopia = require('cryptopia');
 const tradePairs = require('./cryptopia-tradepairs.json');
 const retry = require('../exchangeUtils').retry;
 
-//const marketData = require('./kraken-markets.json');
 
 const Trader = function(config) {
     //_.bindAll(this);
@@ -21,7 +22,11 @@ const Trader = function(config) {
     this.market = _.find(Trader.getCapabilities().markets, (market) => {
         return market.pair[0] === this.currency && market.pair[1] === this.asset
     });
+
+    this.marketStr = this.market.pair[1] + "/"+this.market.pair[0];
+
     this.tradePair = this.asset + "_" + this.currency;
+
 
     this.cryptopiaClient = new Cryptopia(this.key, this.secret);
     this.tid = 0;
@@ -89,10 +94,9 @@ Trader.prototype.getPortfolio = function(callback) {
     });
 };
 
-//TODO: implement
 
 Trader.prototype.getFee = function(callback) {
-
+    callback(undefined,0.0002);
 };
 
 
@@ -134,24 +138,92 @@ Trader.prototype.getLotSize = function(tradeType, amount, size, callback) {
 
 };
 
-Trader.prototype.buy = function(amount, price, callback) {
+function submitOrder(type,amount, price, callback)
+{
+    var self = this;
+    self.cryptopiaClient.submitTrade(function(err, data) {
+        if (err)
+            return callback(err);
+        if (!data.Success)
+            return callback(data.Error);
+        //var order = {orderid:data.Data.OrderId};
+        var order = data.Data;
+        callback(undefined,order);
+    },self.marketStr,undefined,type,price.toString(),amount.toString())
+};
 
+
+Trader.prototype.buy = function(amount, price, callback) {
+    submitOrder("Buy",amount,price,callback);
 };
 
 Trader.prototype.sell = function(amount, price, callback) {
-
+   submitOrder("Sell",amount,price,callback);
 };
 
 Trader.prototype.getOrder = function(order, callback) {
+    var self = this;
 
+    this.cryptopiaClient.getTradeHistory(function(err,result){
+        if (err) 
+            return callback(err);
+        if (!result.Success)
+            return callback(result.Error);
+        var orderId = order.OrderId;
+        var orders = data.Data.filter(o => {o.TradeId == orderId && o.Market == self.marketStr});
+
+        return callback(undefined,{price : orders[0].Rate, amount: orders[0].Amount,date:moment(orders[0].Timestamp, moment.ISO_8601) })
+    },this.marketStr,undefined,1000);
 };
 
 Trader.prototype.checkOrder = function(order, callback) {
+    var self = this;
+    this.cryptopiaClient.getOpenOrders(function(err,result){
+        if (err) 
+            return callback(err);
+        if (!result.Success)
+            return callback(result.Error);
+        
+        var orderId = order.OrderId;
+        
+        var orders = data.Data.filter(o => {o.OrderId == orderId && o.Market == self.marketStr});
+        if (orders.length > 0)
+        {
+            if (orders[0].Remaining == orders[0].Amount)
+                return callback(undefined,{
+                    open:true,
+                    executed:false,
+                    filledAmount:0
+                });
+            else
+                return callback(undefined,{
+                    open:true,
+                    executed:false,
+                    filledAmount:(order[0].Amount - order[0].Remaining)
+                });
+        }else
+        {
+            return callback(undefined,{
+                open:false,
+                executed:true,
+            });
+        }
 
+
+        
+        
+    },this.marketStr,undefined,100);
 };
 
 Trader.prototype.cancelOrder = function(order, callback) {
-
+    this.cryptopiaClient.cancelTrade(function(err,result){
+    if (err) 
+        return callback(err);
+    if (!result.Success)
+        return callback(result.Error);
+    
+    return callback(undefined,false);
+    },"Trade",order.OrderId)
 };
 
 Trader.prototype.isValidPrice = function(price) {
