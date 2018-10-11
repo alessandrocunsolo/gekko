@@ -1,4 +1,4 @@
-import { calendarFormat } from 'moment';
+//import { calendarFormat } from 'moment';
 
 const moment = require('moment');
 const _ = require('lodash');
@@ -23,7 +23,7 @@ const Trader = function(config) {
         return market.pair[0] === this.currency && market.pair[1] === this.asset
     });
 
-    this.marketStr = this.market.pair[1] + "/"+this.market.pair[0];
+    this.marketStr = this.market.pair[1] + "/" + this.market.pair[0];
 
     this.tradePair = this.asset + "_" + this.currency;
 
@@ -96,7 +96,7 @@ Trader.prototype.getPortfolio = function(callback) {
 
 
 Trader.prototype.getFee = function(callback) {
-    callback(undefined,0.0002);
+    callback(undefined, 0.0002);
 };
 
 
@@ -139,8 +139,7 @@ Trader.prototype.getLotSize = function(tradeType, amount, size, callback) {
 
 };
 
-function submitOrder(type,amount, price, callback)
-{
+function submitOrder(type, amount, price, callback) {
     var self = this;
     self.cryptopiaClient.submitTrade(function(err, data) {
         if (err)
@@ -149,82 +148,82 @@ function submitOrder(type,amount, price, callback)
             return callback(data.Error);
         //var order = {orderid:data.Data.OrderId};
         var order = data.Data;
-        callback(undefined,order);
-    },self.marketStr,undefined,type,price.toString(),amount.toString())
+        callback(undefined, order);
+    }, self.marketStr, undefined, type, price.toString(), amount.toString())
 };
 
 
 Trader.prototype.buy = function(amount, price, callback) {
-    submitOrder("Buy",amount,price,callback);
+    submitOrder("Buy", amount, price, callback);
 };
 
 Trader.prototype.sell = function(amount, price, callback) {
-   submitOrder("Sell",amount,price,callback);
+    submitOrder("Sell", amount, price, callback);
 };
 
 Trader.prototype.getOrder = function(order, callback) {
     var self = this;
 
-    this.cryptopiaClient.getTradeHistory(function(err,result){
-        if (err) 
+    this.cryptopiaClient.getTradeHistory(function(err, result) {
+        if (err)
             return callback(err);
         if (!result.Success)
             return callback(result.Error);
         var orderId = order.OrderId;
-        var orders = data.Data.filter(o => {o.TradeId == orderId && o.Market == self.marketStr});
+        var orders = data.Data.filter(o => { o.TradeId == orderId && o.Market == self.marketStr });
 
-        return callback(undefined,{price : orders[0].Rate, amount: orders[0].Amount,date:moment(orders[0].Timestamp, moment.ISO_8601) })
-    },this.marketStr,undefined,1000);
+        return callback(undefined, { price: orders[0].Rate, amount: orders[0].Amount, date: new moment(orders[0].Timestamp, moment.ISO_8601) })
+            //return callback(undefined, { price: orders[0].Rate, amount: orders[0].Amount, date: orders[0].Timestamp })
+
+    }, this.marketStr, undefined, 1000);
 };
 
 Trader.prototype.checkOrder = function(order, callback) {
     var self = this;
-    this.cryptopiaClient.getOpenOrders(function(err,result){
-        if (err) 
+    this.cryptopiaClient.getOpenOrders(function(err, result) {
+        if (err)
             return callback(err);
         if (!result.Success)
             return callback(result.Error);
-        
+
         var orderId = order.OrderId;
-        
-        var orders = data.Data.filter(o => {o.OrderId == orderId && o.Market == self.marketStr});
-        if (orders.length > 0)
-        {
+
+        var orders = data.Data.filter(o => { o.OrderId == orderId && o.Market == self.marketStr });
+        if (orders.length > 0) {
             if (orders[0].Remaining == orders[0].Amount)
-                return callback(undefined,{
-                    open:true,
-                    executed:false,
-                    filledAmount:0
+                return callback(undefined, {
+                    open: true,
+                    executed: false,
+                    filledAmount: 0
                 });
             else
-                return callback(undefined,{
-                    open:true,
-                    executed:false,
-                    filledAmount:(order[0].Amount - order[0].Remaining)
+                return callback(undefined, {
+                    open: true,
+                    executed: false,
+                    filledAmount: (order[0].Amount - order[0].Remaining)
                 });
-        }else
-        {
-            return callback(undefined,{
-                open:false,
-                executed:true,
+        } else {
+            return callback(undefined, {
+                open: false,
+                executed: true,
             });
         }
 
 
-        
-        
-    },this.marketStr,undefined,100);
+
+
+    }, this.marketStr, undefined, 100);
 };
 
 Trader.prototype.cancelOrder = function(order, callback) {
-    this.cryptopiaClient.cancelTrade(function(err,result){
-    if (err) 
-        return callback(err);
-    if (!result.Success)
-        return callback(result.Error);
-    
-    return callback(undefined,false);
-    },"Trade",order.OrderId)
+    this.cryptopiaClient.cancelTrade(function(err, result) {
+        if (err)
+            return callback(err);
+        if (!result.Success)
+            return callback(result.Error);
+
+        return callback(undefined, false);
+    }, "Trade", order.OrderId)
 };
 
 Trader.prototype.isValidPrice = function(price) {
@@ -262,7 +261,7 @@ Trader.getCapabilities = function() {
         providesFullHistory: true,
         markets: markets,
         requires: ['key', 'secret', 'username'],
-        fetchTimespan: null,
+        fetchTimespan: 60,
         tid: 'tid',
         gekkoBroker: '0.6.2',
         limitedCancelConfirmation: false
