@@ -69,25 +69,26 @@ Trader.prototype.getTrades = function(since, callback, descending) {
     }, this.tradePair, 48);
 };
 Trader.prototype.getPortfolio = function(callback) {
+    var self = this;
     this.cryptopiaClient.getBalance(function(err, data) {
         //Symbol
         //Available
         if (err)
             return callback(err);
 
-        var assetAmount = _.find(d.Data, item => item.Symbol == this.asset).Available;
+        var assetAmount = _.find(data.Data, item => item.Symbol == self.asset).Available;
         if (!_.isNumber(assetAmount) || _.isNaN(assetAmount)) {
             assetAmount = 0;
         }
 
-        var currencyAmount = _.find(d.Data, item => item.Symbol == this.currency).Available;
+        var currencyAmount = _.find(data.Data, item => item.Symbol == self.currency).Available;
         if (!_.isNumber(currencyAmount) || _.isNaN(currencyAmount)) {
             currencyAmount = 0;
         }
 
         var portfoglio = [
-            { name: this.asset, amount: assetAmount },
-            { name: this.currency, amount: currencyAmount },
+            { name: self.asset, amount: assetAmount },
+            { name: self.currency, amount: currencyAmount },
         ];
 
         callback(undefined, portfoglio);
