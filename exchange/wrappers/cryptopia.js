@@ -264,7 +264,8 @@ Trader.getCapabilities = function() {
         fetchTimespan: 60,
         tid: 'tid',
         gekkoBroker: '0.6.2',
-        limitedCancelConfirmation: false
+        limitedCancelConfirmation: false,
+        tradable: true
     };
 };
 
